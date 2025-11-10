@@ -1,0 +1,61 @@
+name: notify-branch-created-and-push
+
+on:
+    create:
+    push:
+
+
+jobs:
+  slack-notify-created:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name=='create' && github.ref_type == 'branch' }}
+
+    steps:
+        - name: Set Slack message for branch create
+          run: |
+            REPO="${GITHUB_REPOSITORY}"
+            BRANCH="${GITHUB_REF_NAME}"
+            ACTOR="${GITHUB_ACTOR}"  
+
+            MESSAGE="[브랜치 생성] $ACTOR님 $REPO에서 $BRANCH를 생성했습니다"
+
+            echo "MESSAGE<<EOF" >> $GITHUB_ENV
+            echo "$MESSAGE" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+
+        - name: Send Slack message
+          if: env.MESSAGE != ''
+          run: |
+            echo "Send to Slack: $MESSAGE"
+
+            curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"${MESSAGE}\"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+
+
+  slack-notify-push:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name=='push'}}
+
+    steps:
+        - name: Set Slack message for push
+          run: |
+            REPO="${GITHUB_REPOSITORY}"
+            BRANCH="${GITHUB_REF_NAME}"
+            ACTOR="${GITHUB_ACTOR}"  
+
+            MESSAGE="[브랜치 생성] $ACTOR님 $REPO에서 $BRANCH에 새 커밋을 푸시했습니다"
+
+            echo "MESSAGE<<EOF" >> $GITHUB_ENV
+            echo "$MESSAGE" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+
+        - name: Send Slack message
+          if: env.MESSAGE != ''
+          run: |
+            echo "Send to Slack: $MESSAGE"
+
+            curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"${MESSAGE}\"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
